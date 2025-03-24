@@ -1,0 +1,155 @@
+from typing import List
+
+class Empleado:
+    def _init_(self, id_empleado: int, nombre: str):
+        self.set_id_empleado(id_empleado)
+        self.set_nombre(nombre)
+        self.set_departamento(None)
+    
+    def get_id_empleado(self):
+        return self._id_empleado
+    
+    def set_id_empleado(self, id_empleado):
+        self._id_empleado = id_empleado
+    
+    def get_nombre(self):
+        return self._nombre
+    
+    def set_nombre(self, nombre):
+        self._nombre = nombre
+    
+    def get_departamento(self):
+        return self._departamento
+    
+    def set_departamento(self, departamento):
+        self._departamento = departamento
+    
+    def asignar_departamento(self, departamento):
+        if self.get_departamento():
+            raise ValueError(f"El empleado {self.get_nombre()} ya tiene un departamento asignado.")
+        self.set_departamento(departamento)
+        departamento.agregar_empleado(self)
+    
+    def remover_departamento(self):
+        if not self.get_departamento():
+            raise ValueError(f"El empleado {self.get_nombre()} no tiene un departamento asignado.")
+        self.get_departamento().eliminar_empleado(self)
+        self.set_departamento(None)
+    
+    def _str_(self):
+        return f"Empleado: {self.get_nombre()} - Departamento: {self.get_departamento().get_nombre() if self.get_departamento() else 'No asignado'}"
+
+class EmpleadoPermanente(Empleado):
+    def _init_(self, id_empleado: int, nombre: str, salario: float):
+        super()._init_(id_empleado, nombre)
+        self.set_salario(salario)
+    
+    def get_salario(self):
+        return self._salario
+    
+    def set_salario(self, salario):
+        self._salario = salario
+    
+    def _str_(self):
+        return f"Empleado Permanente: {self.get_nombre()} - Salario: {self.get_salario()} - Departamento: {self.get_departamento().get_nombre() if self.get_departamento() else 'No asignado'}"
+
+class EmpleadoTemporal(Empleado):
+    def _init_(self, id_empleado: int, nombre: str, contrato_duracion: int):
+        super()._init_(id_empleado, nombre)
+        self.set_contrato_duracion(contrato_duracion)
+    
+    def get_contrato_duracion(self):
+        return self._contrato_duracion
+    
+    def set_contrato_duracion(self, contrato_duracion):
+        self._contrato_duracion = contrato_duracion
+    
+    def _str_(self):
+        return f"Empleado Temporal: {self.get_nombre()} - Contrato: {self.get_contrato_duracion()} meses - Departamento: {self.get_departamento().get_nombre() if self.get_departamento() else 'No asignado'}"
+
+class Departamento:
+    def _init_(self, nombre: str):
+        self.set_nombre(nombre)
+        self.set_empleados([])
+    
+    def get_nombre(self):
+        return self._nombre
+    
+    def set_nombre(self, nombre):
+        self._nombre = nombre
+    
+    def get_empleados(self):
+        return self._empleados
+    
+    def set_empleados(self, empleados):
+        self._empleados = empleados
+    
+    def agregar_empleado(self, empleado: Empleado):
+        if empleado in self.get_empleados():
+            raise ValueError(f"El empleado {empleado.get_nombre()} ya está en el departamento {self.get_nombre()}.")
+        self.get_empleados().append(empleado)
+    
+    def eliminar_empleado(self, empleado: Empleado):
+        if empleado not in self.get_empleados():
+            raise ValueError(f"El empleado {empleado.get_nombre()} no está en este departamento.")
+        self.get_empleados().remove(empleado)
+    
+    def listar_empleados(self):
+        return [str(empleado) for empleado in self.get_empleados()]
+    
+    def _str_(self):
+        return f"Departamento: {self.get_nombre()} - Empleados: {len(self.get_empleados())}"
+
+class ReporteDesempeño:
+    def _init_(self, empleado: Empleado, rendimiento: float, comentarios: str):
+        self.set_empleado(empleado)
+        self.set_rendimiento(rendimiento)
+        self.set_comentarios(comentarios)
+    
+    def get_empleado(self):
+        return self._empleado
+    
+    def set_empleado(self, empleado):
+        self._empleado = empleado
+    
+    def get_rendimiento(self):
+        return self._rendimiento
+    
+    def set_rendimiento(self, rendimiento):
+        self._rendimiento = rendimiento
+    
+    def get_comentarios(self):
+        return self._comentarios
+    
+    def set_comentarios(self, comentarios):
+        self._comentarios = comentarios
+    
+    def generar_reporte(self):
+        return f"Reporte de {self.get_empleado().get_nombre()}: Rendimiento {self.get_rendimiento()}/10 - {self.get_comentarios()}"
+
+    @staticmethod
+    def generar_reporte_departamento(departamento: Departamento):
+        reportes = [f"{emp.get_nombre()}: {emp.get_departamento().get_nombre() if emp.get_departamento() else 'No asignado'}" for emp in departamento.get_empleados()]
+        return "\n".join(reportes) if reportes else "No hay empleados en el departamento."
+
+# Prueba del sistema
+if _name_ == "_main_":
+    emp1 = EmpleadoPermanente(1, "Carlos Pérez", 5000.0)
+    emp2 = EmpleadoTemporal(2, "Ana López", 6)
+    
+    depto = Departamento("Desarrollo")
+    emp1.asignar_departamento(depto)
+    emp2.asignar_departamento(depto)
+    
+    print("Lista de empleados en Desarrollo:")
+    print(depto.listar_empleados())
+    
+    reporte = ReporteDesempeño(emp1, 8.5, "Buen desempeño en el último trimestre.")
+    print(reporte.generar_reporte())
+    
+    print("\nReporte del Departamento Desarrollo:")
+    print(ReporteDesempeño.generar_reporte_departamento(depto))
+    
+    emp1.remover_departamento()
+    print("\nDespués de remover a Carlos Pérez del departamento:")
+    print(depto.listar_empleados())
